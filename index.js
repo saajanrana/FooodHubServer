@@ -85,10 +85,18 @@ app.post('/api/register', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
+    const errors = {};
   
     // Basic validation
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required.' });
+    if (!email) {
+      errors.email = "Email is required.";
+    }
+    if(!password) {
+      errors.password = "Password is required.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ errors });
     }
   
     try {
@@ -98,13 +106,13 @@ app.post('/api/login', async (req, res) => {
   
       // Check if the user exists
       if (!user) {
-        return res.status(401).json({ message: 'Invalid email or password.' });
+        return res.status(401).json({ message1: 'Invalid email.' });
       }
   
       // Check if the password is correct
       const isPasswordValid = user.password === password; // Note: You should use bcrypt for secure password storage and comparison
       if (!isPasswordValid) {
-        return res.status(401).json({ message: 'Invalid email or password.' });
+        return res.status(401).json({ message2: 'Invalid password.' });
       }
 
       const token = generateToken(user);
