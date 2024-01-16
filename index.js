@@ -6,6 +6,25 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const app = express();
 const port = 3000;
+const multer = require('multer');
+
+const path = require('path');
+const { chownSync } = require("fs");
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static('public'));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + 'profile.jpg');
+  },
+});
+
+const upload = multer({ storage: storage });
+
+
 
 // Connect to MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/FooodHub', {
@@ -24,9 +43,18 @@ const User = mongoose.model('User', {
   imgurl:{type:String}
 });
 
+
+
+const corsOptions = {
+  origin: '*', // You might want to set a specific origin instead of allowing all (*)
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
 // Middleware
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors(corsOptions));
 
 
 // jwt 
@@ -215,7 +243,7 @@ app.get('/api/profile', async (req, res) => {
       phone: user?.phone,
       city: user?.city,
       state: user?.state,
-      image: user?.image,
+      imgurl: user?.imgurl,
     });
   } catch (error) {
     console.error(error);
@@ -236,63 +264,55 @@ app.put('/api/edit',async(req,res)=>{
   }
   try {
     const decodedToken = jwt.verify(token,"your_secret_key");
-    console.log('decode????????',decodedToken);
     const user = await User.findById(decodedToken.userId);
-    console.log('user>>>>',user);
     
-
-    // const { id } = req.params;
-    // const { name, phone, imgurl } = req.body;
-    // const userId = req.user.userId;
-  
-    //   const contactId = req.params.id;
-  
-      // // Find the user by ID
-      // const user = await User.findById(userId);
-  
-  
-      // const contact = user.contacts.find(
-      //   (contact) => contact._id.toString() === userId
-      // );
-
-      //  // Update contact properties
-      //  contact.name = name || contact.name;
-      //  contact.phone = phone || contact.phone;
-      //  contact.imgurl = imgurl || contact.imgurl;
-   
-      //  // Save the changes to the user
-      //  await user.save();
-
+    
       const {fullName,email,phone,city,state} = req.body;
        user.fullName = fullName;
        user.email = email;
        user.phone = phone;
        user.city = city;
        user.state = state;
-
-      console.log('hue hue hue>>>>.',fullName,email,phone,city,state);
-      console.log('user>>>>',user);
-
-
-      await user.save();
-
-
-    
-     
-      // if (contact) {
-      //     res.json(contact);
-      // } else {
-      //     res.status(404).json({ error: 'Contact not found' });
-      // }
+       await user.save();
   } catch (error) {
       res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+//add image 
+
+app.put('/api/addimage',upload.single('profileImage'),async(req,res)=>{
+
+  try {
+    const token = req.headers.authorization;
+    const decodedToken = jwt.verify(token, "your_secret_key");
+    const user = await User.findById(decodedToken.userId);
+    console.log('hue hue');
+
+    if (!user) {
+      console.log('hue hue hue hue')
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const imgurl = req.file.path;
+    console.log('image path:', imgurl);
+
+    // Update the user object with the new image URL
+    user.imgurl = imgurl;
+
+    // Save the changes to the user object in the database
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Image added successfully.', imgurl });
+  } catch (error) {
+    console.error('Error adding image:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+    
+
+});
 
 
-
-
-
-})
 
 
 
