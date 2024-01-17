@@ -42,6 +42,13 @@ const User = mongoose.model('User', {
   state:{type:String},
   imgurl:{type:String}
 });
+const Userfood = mongoose.model('Userfood', {
+
+  usertoken:{type:String},
+  userdata:{type:Object},
+  userfood:{type:Object}
+  
+});
 
 
 
@@ -281,7 +288,7 @@ app.put('/api/edit',async(req,res)=>{
 
 //add image 
 
-app.put('/api/addimage',upload.single('profileImage'),async(req,res)=>{
+app.post('/api/addimage',upload.single('profileImage'),async(req,res)=>{
 
   try {
     const token = req.headers.authorization;
@@ -311,6 +318,41 @@ app.put('/api/addimage',upload.single('profileImage'),async(req,res)=>{
     
 
 });
+
+
+// added user food with id
+
+app.post('/api/userfood',async(req,res)=>{
+
+    const token = req.headers.authorization;
+    const decodedToken = jwt.verify(token, "your_secret_key");
+    const user = await User.findById(decodedToken.userId);
+    const data =req.body;
+
+    console.log('data>>>>',data);
+
+
+    // const newfood = new Userfood({token,user,data});
+    // await newfood.save();
+
+    Userfood.usertoken = token;
+    Userfood.userdata = user;
+    Userfood.userfood = data;
+
+    await Userfood.save();
+
+
+    // const newUser = new User({ fullName, email, password,phone,city,state });
+    // await newUser.save();
+
+   
+
+ 
+
+
+
+});
+
 
 
 
