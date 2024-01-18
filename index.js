@@ -46,7 +46,7 @@ const Userfood = mongoose.model('Userfood', {
 
 
   token:{type:String},
-  data:{type:Object}
+  data:{type:Array}
   
     
   
@@ -326,38 +326,53 @@ app.post('/api/addimage',upload.single('profileImage'),async(req,res)=>{
 
 app.post('/api/userfood',async(req,res)=>{
 
-    const token = req.headers.authorization;
-    const decodedToken = jwt.verify(token, "your_secret_key");
-    const user = await User.findById(decodedToken.userId);
-    const data =req.body;
-
-    console.log('data>>>>',data,token);
-
-    const newdata = new Userfood({token,data});
-    await newdata.save();
-    // const newUser = new User();
-    // await newUser.save();
-
-
-    // const newfood = new Userfood({token,user,data});
-    // await newfood.save();
-
-    // Userfood.usertoken = token;
-    // Userfood.userdata = user;
-    // Userfood.userfood = data;
-
-    // await Userfood.save();
-
-
-    // const newUser = new User({ fullName, email, password,phone,city,state });
-    // await newUser.save();
-
-   
-
- 
 
 
 
+    try {
+      const token = req.headers.authorization;
+      const data = req.body;
+  
+      console.log('data>>>>', data);
+  
+      const userfood = await Userfood.findOne({ token: token });
+  
+      console.log('userfoood>>>>>', userfood);
+  
+      if (!userfood) {
+        const newdata = new Userfood({ token, data });
+        await newdata.save();
+      } else {
+
+              data.map((e)=>{
+                console.log('e>>>>',e);
+                userfood.data=[...userfood.data,e];
+              })
+              
+              await userfood.save();
+
+
+      }
+  
+      res.status(200).json({ success: true, message: 'Data saved successfully.' });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+});
+
+app.get('/api/userfood',async(req,res)=>{
+
+  const token = req.headers.authorization;
+
+  if(token){
+    const userfood = await Userfood.findOne({ token: token });
+
+    res.status(200).json(userfood);
+  }
+  else {
+    console.log('token did not match');
+  }
 });
 
 
