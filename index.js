@@ -44,9 +44,11 @@ const User = mongoose.model('User', {
 });
 const Userfood = mongoose.model('Userfood', {
 
-  usertoken:{type:String},
-  userdata:{type:Object},
-  userfood:{type:Object}
+
+  token:{type:String},
+  data:{type:Object}
+  
+    
   
 });
 
@@ -329,17 +331,22 @@ app.post('/api/userfood',async(req,res)=>{
     const user = await User.findById(decodedToken.userId);
     const data =req.body;
 
-    console.log('data>>>>',data);
+    console.log('data>>>>',data,token);
+
+    const newdata = new Userfood({token,data});
+    await newdata.save();
+    // const newUser = new User();
+    // await newUser.save();
 
 
     // const newfood = new Userfood({token,user,data});
     // await newfood.save();
 
-    Userfood.usertoken = token;
-    Userfood.userdata = user;
-    Userfood.userfood = data;
+    // Userfood.usertoken = token;
+    // Userfood.userdata = user;
+    // Userfood.userfood = data;
 
-    await Userfood.save();
+    // await Userfood.save();
 
 
     // const newUser = new User({ fullName, email, password,phone,city,state });
