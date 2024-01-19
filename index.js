@@ -223,6 +223,9 @@ app.post('/api/login', async (req, res) => {
   //     next();
   //   });
   // };
+
+
+
 app.get('/api/profile', async (req, res) => {
   const token = req.headers.authorization;
 
@@ -362,11 +365,14 @@ app.post('/api/userfood',async(req,res)=>{
 });
 
 app.get('/api/userfood',async(req,res)=>{
+  console.log("hola the calll:")
 
   const token = req.headers.authorization;
 
   if(token){
+    console.log('hue hue hue');
     const userfood = await Userfood.findOne({ token: token });
+    console.log('foood>>>>',userfood);
 
     res.status(200).json(userfood);
   }
